@@ -1,0 +1,21 @@
+# Maven target
+target/
+
+# IDE files
+.idea/
+.smarttomcat/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Exclude reports per user request
+BAO_CAO_*.md
+*bao_cao*
+*.docx
+*.pdf
+
+# Temporary files
+*.log
+*.tmp

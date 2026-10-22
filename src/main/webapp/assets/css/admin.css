@@ -1,0 +1,133 @@
+/* ========================================================
+   QUIZMASTER - ADMIN & MANAGEMENT DASHBOARD STYLESHEET
+   ======================================================== */
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-nav {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.admin-nav-item {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.admin-nav-item:hover, .admin-nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* KPI Metric Cards */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.kpi-icon.users { background: #e0e7ff; color: #4338ca; }
+.kpi-icon.quizzes { background: #cffafe; color: #0891b2; }
+.kpi-icon.attempts { background: #dcfce7; color: #15803d; }
+.kpi-icon.tickets { background: #fef3c7; color: #b45309; }
+
+.kpi-info h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text-primary);
+}
+
+.kpi-info p {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* Modern Data Table */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.92rem;
+}
+
+.table th {
+    background: #f8fafc;
+    padding: 14px 18px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 992px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .admin-nav { flex-wrap: wrap; }
+}
