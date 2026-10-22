@@ -192,13 +192,13 @@ CREATE TABLE `support_tickets` (
 -- ========================================================
 
 -- Mật khẩu mặc định cho các tài khoản là '123456' 
--- (BCrypt hash: $2a$10$wK1Wk9m0d40KzB8YvI0JmeW4u1K4f9mQeQz1eU9p6N9Xy2Ue6M1S2)
+-- (BCrypt hash: $2a$10$t.jELKOoGjsw/rUls3pCa.ITcxTuIYDYGDq91P7RODxXpS6XaVShC)
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `role`, `current_streak`, `last_active_date`) VALUES
-(1, 'admin', 'admin@quizmaster.edu.vn', '$2a$10$e8R6.yW96cRkM1P0k.K8n.mY2P5s.hE6N7o8k7Y3n3l4V5c6X7y8Z', 'Quản trị viên Hệ thống', 'ADMIN', 15, CURDATE()),
-(2, 'teacher_ha', 'ha.mai@quizmaster.edu.vn', '$2a$10$e8R6.yW96cRkM1P0k.K8n.mY2P5s.hE6N7o8k7Y3n3l4V5c6X7y8Z', 'Thầy Mai Văn Hà', 'TEACHER', 12, CURDATE()),
-(3, 'minhphat', 'minhphat@student.edu.vn', '$2a$10$e8R6.yW96cRkM1P0k.K8n.mY2P5s.hE6N7o8k7Y3n3l4V5c6X7y8Z', 'Nguyễn Minh Phát', 'STUDENT', 5, CURDATE()),
-(4, 'hoangnam', 'hoangnam@student.edu.vn', '$2a$10$e8R6.yW96cRkM1P0k.K8n.mY2P5s.hE6N7o8k7Y3n3l4V5c6X7y8Z', 'Lê Hoàng Nam', 'STUDENT', 3, SUBDATE(CURDATE(), 1)),
-(5, 'thuytrang', 'thuytrang@student.edu.vn', '$2a$10$e8R6.yW96cRkM1P0k.K8n.mY2P5s.hE6N7o8k7Y3n3l4V5c6X7y8Z', 'Trần Thụy Trang', 'STUDENT', 8, CURDATE());
+(1, 'admin', 'admin@quizmaster.edu.vn', '$2a$10$t.jELKOoGjsw/rUls3pCa.ITcxTuIYDYGDq91P7RODxXpS6XaVShC', 'Quản trị viên Hệ thống', 'ADMIN', 15, CURDATE()),
+(2, 'teacher_ha', 'ha.mai@quizmaster.edu.vn', '$2a$10$t.jELKOoGjsw/rUls3pCa.ITcxTuIYDYGDq91P7RODxXpS6XaVShC', 'Thầy Mai Văn Hà', 'TEACHER', 12, CURDATE()),
+(3, 'minhphat', 'minhphat@student.edu.vn', '$2a$10$t.jELKOoGjsw/rUls3pCa.ITcxTuIYDYGDq91P7RODxXpS6XaVShC', 'Nguyễn Minh Phát', 'STUDENT', 5, CURDATE()),
+(4, 'hoangnam', 'hoangnam@student.edu.vn', '$2a$10$t.jELKOoGjsw/rUls3pCa.ITcxTuIYDYGDq91P7RODxXpS6XaVShC', 'Lê Hoàng Nam', 'STUDENT', 3, SUBDATE(CURDATE(), 1)),
+(5, 'thuytrang', 'thuytrang@student.edu.vn', '$2a$10$t.jELKOoGjsw/rUls3pCa.ITcxTuIYDYGDq91P7RODxXpS6XaVShC', 'Trần Thụy Trang', 'STUDENT', 8, CURDATE());
 
 -- Danh mục bài học
 INSERT INTO `categories` (`id`, `name`, `description`, `icon`) VALUES
