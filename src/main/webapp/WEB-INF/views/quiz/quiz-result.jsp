@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <c:set var="pageTitle" value="Kết quả bài thi: ${quiz.title} - QuizMaster" />
 <c:set var="activePage" value="quiz" />
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
@@ -46,8 +47,10 @@
             </div>
         </c:if>
         <div class="result-stat-card">
-            <h4 style="color: #ea580c;"><i class="fas fa-fire"></i> +1</h4>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">Cập nhật chuỗi Streak</p>
+            <h4 style="color: var(--primary);">
+                <fmt:formatNumber value="${(attempt.correctAnswers / attempt.totalQuestions) * 100}" maxFractionDigits="0"/>%
+            </h4>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">Tỷ lệ chính xác</p>
         </div>
     </div>
 

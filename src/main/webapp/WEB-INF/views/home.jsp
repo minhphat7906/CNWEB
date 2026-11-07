@@ -6,92 +6,104 @@
 
 <c:choose>
     <%-- ======================================================== --%>
-    <%-- 1. GIAO DIỆN BÀN LÀM VIỆC DÀNH CHO THÀNH VIÊN ĐÃ ĐĂNG NHẬP --%>
+    <%-- 1. BÀN LÀM VIỆC DÀNH CHO THÀNH VIÊN ĐÃ ĐĂNG NHẬP          --%>
     <%-- ======================================================== --%>
     <c:when test="${not empty sessionScope.currentUser}">
-        <div style="margin-bottom: 32px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: linear-gradient(135deg, #eef2ff, #f8fafc); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 28px 32px; box-shadow: var(--shadow-sm);">
+        <!-- Khối Chào mừng & Vào phòng thi nhanh -->
+        <div class="card" style="padding: 28px 32px; margin-bottom: 28px; background: linear-gradient(135deg, #ffffff, #f8fafc); border-color: var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
                 <div>
-                    <span class="badge ${sessionScope.currentUser.admin ? 'badge-danger' : (sessionScope.currentUser.teacher ? 'badge-info' : 'badge-primary')}" style="margin-bottom: 8px;">
-                        <i class="fas fa-user-tag"></i> Vai trò: ${sessionScope.currentUser.role}
-                    </span>
-                    <h1 style="font-size: 2rem; font-weight: 800; margin: 0; color: var(--text-primary);">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <span class="badge ${sessionScope.currentUser.admin ? 'badge-danger' : (sessionScope.currentUser.teacher ? 'badge-info' : 'badge-primary')}">
+                            <c:choose>
+                                <c:when test="${sessionScope.currentUser.admin}">Quản trị viên</c:when>
+                                <c:when test="${sessionScope.currentUser.teacher}">Giảng viên</c:when>
+                                <c:otherwise>Sinh viên</c:otherwise>
+                            </c:choose>
+                        </span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Học kỳ 2025 - 2026</span>
+                    </div>
+                    <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0; color: var(--text-primary);">
                         Xin chào, ${sessionScope.currentUser.fullName}! 👋
                     </h1>
                     <p style="color: var(--text-secondary); margin-top: 6px; font-size: 0.95rem;">
-                        Chào mừng bạn quay trở lại Bàn làm việc. Hãy tiếp tục duy trì chuỗi học tập hôm nay nhé!
+                        Chào mừng bạn trở lại bàn làm việc. Nhập mã phòng thi của giáo viên hoặc chọn đề bên dưới để bắt đầu.
                     </p>
                 </div>
 
-                <div style="text-align: right;">
-                    <div class="streak-badge" style="font-size: 1.1rem; padding: 8px 18px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="streak-badge" style="font-size: 0.95rem; padding: 8px 16px;">
                         <i class="fas fa-fire fire-icon"></i>
-                        <span>Chuỗi ${sessionScope.currentUser.currentStreak} ngày liên tục</span>
+                        <span>Chuỗi <strong>${sessionScope.currentUser.currentStreak}</strong> ngày</span>
                     </div>
+                    <c:if test="${sessionScope.currentUser.teacher or sessionScope.currentUser.admin}">
+                        <a href="${pageContext.request.contextPath}/quiz-lab" class="btn btn-primary" style="height: 42px; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-plus"></i> Tạo đề thi mới
+                        </a>
+                    </c:if>
                 </div>
+            </div>
+
+            <!-- Thanh Vào phòng thi nhanh (Fast Enter Quiz) chuẩn Azota/Quizizz -->
+            <div style="background: var(--bg-page); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 1.1rem; padding-left: 6px;">
+                    <i class="fas fa-key" style="color: var(--primary);"></i>
+                </div>
+                <input type="text" id="fastQuizInput" 
+                       placeholder="Nhập mã đề thi (Ví dụ: 7, 10...) hoặc dán liên kết bài thi để vào làm ngay..." 
+                       style="flex: 1; min-width: 260px; border: none; background: transparent; font-size: 0.95rem; font-weight: 500; color: var(--text-primary); outline: none;"
+                       onkeydown="if(event.key === 'Enter') handleFastEnter();">
+                <button type="button" class="btn btn-primary btn-sm" onclick="handleFastEnter()" style="padding: 10px 22px; font-weight: 600;">
+                    Vào thi ngay <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                </button>
             </div>
         </div>
 
-        <!-- 4 Khối chức năng thao tác nhanh (Quick Actions) -->
-        <section style="margin-bottom: 40px;">
-            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 16px; color: var(--primary);">
-                <i class="fas fa-bolt"></i> Lối tắt chức năng
-            </h3>
+        <!-- 3 Thẻ chỉ số tinh gọn (Clean Metrics) -->
+        <div class="grid grid-3" style="margin-bottom: 32px;">
+            <a href="${pageContext.request.contextPath}/quiz" class="card" style="padding: 18px 22px; text-decoration: none; display: flex; align-items: center; gap: 16px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Kho đề thi công khai</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">${totalQuizzes} bộ đề</div>
+                </div>
+            </a>
 
-            <div class="grid grid-4">
-                <!-- Phím 1: Vào thi -->
-                <a href="${pageContext.request.contextPath}/quiz" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 20px;">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
-                        <i class="fas fa-play"></i>
-                    </div>
-                    <div>
-                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Kho Đề Thi</h4>
-                        <span style="font-size: 0.82rem; color: var(--text-muted);">Khám phá và vào phòng thi</span>
-                    </div>
-                </a>
+            <a href="${pageContext.request.contextPath}/history" class="card" style="padding: 18px 22px; text-decoration: none; display: flex; align-items: center; gap: 16px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Bài thi của tôi</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">Xem lịch sử nộp bài</div>
+                </div>
+            </a>
 
-                <!-- Phím 2: Phòng Lab -->
-                <a href="${pageContext.request.contextPath}/quiz-lab" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 20px; border-color: var(--border-focus);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
-                        <i class="fas fa-flask"></i>
-                    </div>
-                    <div>
-                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Phòng Lab Soạn Đề</h4>
-                        <span style="font-size: 0.82rem; color: var(--text-muted);">Sáng tạo câu hỏi & bộ đề</span>
-                    </div>
-                </a>
+            <a href="${pageContext.request.contextPath}/profile" class="card" style="padding: 18px 22px; text-decoration: none; display: flex; align-items: center; gap: 16px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Tài khoản & Hồ sơ</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">@${sessionScope.currentUser.username}</div>
+                </div>
+            </a>
+        </div>
 
-                <!-- Phím 3: Lịch sử làm bài -->
-                <a href="${pageContext.request.contextPath}/history" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 20px;">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <div>
-                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Lịch Sử Làm Bài</h4>
-                        <span style="font-size: 0.82rem; color: var(--text-muted);">Xem lại chi tiết các bài thi đã làm</span>
-                    </div>
-                </a>
-
-                <!-- Phím 4: Hồ sơ cá nhân -->
-                <a href="${pageContext.request.contextPath}/profile" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 16px; padding: 20px;">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: #fce7f3; color: #be185d; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div>
-                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Hồ Sơ Cá Nhân</h4>
-                        <span style="font-size: 0.82rem; color: var(--text-muted);">Cập nhật tài khoản & mật khẩu</span>
-                    </div>
-                </a>
-            </div>
-        </section>
-
-        <!-- Đề thi tiêu biểu cho thành viên -->
+        <!-- Danh sách Đề thi đề xuất -->
         <section style="margin-bottom: 40px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0;">
-                    <i class="fas fa-star" style="color: #f59e0b;"></i> Đề thi gợi ý ôn tập
-                </h3>
-                <a href="${pageContext.request.contextPath}/quiz" class="btn btn-outline btn-sm">Xem tất cả kho đề <i class="fas fa-arrow-right"></i></a>
+                <div>
+                    <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+                        Đề thi ôn tập nổi bật
+                    </h2>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Các bộ đề được biên soạn chọn lọc để bạn củng cố kiến thức</p>
+                </div>
+                <a href="${pageContext.request.contextPath}/quiz" class="btn btn-outline btn-sm">
+                    Xem tất cả đề thi <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                </a>
             </div>
 
             <div class="grid grid-3">
@@ -99,10 +111,22 @@
                     <div class="card quiz-card">
                         <div>
                             <div class="quiz-card-header">
-                                <span class="badge ${quiz.difficultyBadgeClass}">${quiz.difficultyLabel}</span>
-                                <span class="badge badge-info" style="font-size: 0.75rem;">${quiz.categoryName}</span>
+                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                    <span class="badge ${quiz.difficultyBadgeClass}">${quiz.difficultyLabel}</span>
+                                    <c:if test="${quiz.hasAccessCode()}">
+                                        <span class="badge badge-warning" title="Yêu cầu mã PIN phòng thi" style="font-size: 0.72rem; padding: 2px 6px;"><i class="fas fa-key"></i> Có mã</span>
+                                    </c:if>
+                                    <c:if test="${quiz.antiCheat}">
+                                        <span class="badge badge-danger" title="Giám sát chống gian lận" style="font-size: 0.72rem; padding: 2px 6px;"><i class="fas fa-shield-alt"></i> Giám sát</span>
+                                    </c:if>
+                                </div>
+                                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">#${quiz.id}</span>
                             </div>
-                            <h3 class="quiz-card-title">${quiz.title}</h3>
+                            <h3 class="quiz-card-title">
+                                <a href="${pageContext.request.contextPath}/quiz?id=${quiz.id}" style="color: var(--text-primary); text-decoration: none;">
+                                    ${quiz.title}
+                                </a>
+                            </h3>
                             <p class="quiz-card-desc">${quiz.description}</p>
                         </div>
 
@@ -116,14 +140,15 @@
                                     </c:choose>
                                 </span>
                                 <span><i class="fas fa-question-circle"></i> ${quiz.questionCount} câu</span>
+                                <span><i class="fas fa-users"></i> ${quiz.attemptCount} lượt</span>
                             </div>
 
                             <div class="quiz-card-footer">
-                                <span style="font-size: 0.85rem; color: var(--text-secondary);">
-                                    <i class="fas fa-user-edit"></i> ${quiz.creatorName}
-                                </span>
-                                <a href="${pageContext.request.contextPath}/quiz-take?id=${quiz.id}" class="btn btn-primary btn-sm">
-                                    Vào thi <i class="fas fa-play"></i>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="copyQuizShareLink('${quiz.id}')" title="Sao chép link bài thi">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                                <a href="${pageContext.request.contextPath}/quiz?id=${quiz.id}" class="btn btn-primary btn-sm">
+                                    Vào làm bài <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
                                 </a>
                             </div>
                         </div>
@@ -134,135 +159,111 @@
     </c:when>
 
     <%-- ======================================================== --%>
-    <%-- 2. GIAO DIỆN LANDING PAGE CHUẨN DÀNH CHO KHÁCH VÃNG LAI   --%>
+    <%-- 2. GIAO DIỆN TRANG CHỦ DÀNH CHO KHÁCH (CHƯA ĐĂNG NHẬP)   --%>
     <%-- ======================================================== --%>
     <c:otherwise>
-        <!-- Hero Section Landing Page -->
-        <section class="hero-section" style="margin-top: 0; padding: 32px 0 48px;">
-            <div class="hero-grid">
-                    <div>
-                        <span class="badge badge-primary" style="margin-bottom: 14px;">
-                            <i class="fas fa-sparkles"></i> Hệ thống Khảo thí Trực tuyến MVC
-                        </span>
-                        <h1 class="hero-title">Đo Lường Tri Thức, Bứt Phá Giới Hạn</h1>
-                        <p class="hero-subtitle">
-                            Nền tảng thi trắc nghiệm trực tuyến chuẩn mực: bảo mật chấm điểm Zero-Trust, phòng Lab biên soạn đề độc lập, đồng hồ đếm ngược thời gian thực và chuỗi chuyên cần (Streak) vinh danh thành tích.
-                        </p>
+        <section class="card" style="padding: 48px 36px; margin-bottom: 32px; background: linear-gradient(135deg, #ffffff, #f8fafc);">
+            <div style="max-width: 720px; margin: 0 auto; text-align: center;">
+                <span class="badge badge-primary" style="margin-bottom: 14px; padding: 6px 14px; font-size: 0.85rem;">
+                    <i class="fas fa-brain"></i> Hệ thống Khảo thí & Luyện thi Trắc nghiệm
+                </span>
+                <h1 style="font-size: 2.3rem; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin-bottom: 12px; letter-spacing: -0.02em;">
+                    Khảo Thí Thông Minh, Đánh Giá Chuẩn Xác
+                </h1>
+                <p style="color: var(--text-secondary); font-size: 1.05rem; line-height: 1.6; margin-bottom: 28px;">
+                    Nền tảng kiểm tra trực tuyến chất lượng cao: chấm điểm an toàn tại máy chủ, giám sát chống gian lận thời gian thực và quản lý bộ đề thi chuyên sâu.
+                </p>
 
-                        <div class="hero-actions">
-                            <a href="${pageContext.request.contextPath}/quiz" class="btn btn-primary btn-lg">
-                                <i class="fas fa-play"></i> Khám phá kho đề thi
-                            </a>
-                            <a href="${pageContext.request.contextPath}/auth?action=login" class="btn btn-outline btn-lg">
-                                <i class="fas fa-sign-in-alt"></i> Đăng nhập hệ thống
-                            </a>
-                        </div>
-
-                        <div class="hero-stats-banner">
-                            <div class="hero-stat-item">
-                                <h3>${totalQuizzes}+</h3>
-                                <p>Bộ đề chuẩn hóa</p>
-                            </div>
-                            <div class="hero-stat-item">
-                                <h3>${totalAttempts}+</h3>
-                                <p>Lượt làm bài thi</p>
-                            </div>
-                            <div class="hero-stat-item">
-                                <h3>${totalUsers}+</h3>
-                                <p>Học viên & Giảng viên</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <!-- Thẻ Xem trước Đề thi nổi bật -->
-                        <div class="hero-card-preview">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                <span class="badge badge-success"><i class="fas fa-bolt"></i> Thử thách hôm nay</span>
-                                <span class="streak-badge"><i class="fas fa-fire fire-icon"></i> Tích lũy Streak</span>
-                            </div>
-                            <h3 style="font-size: 1.3rem; margin-bottom: 8px;">Ôn tập Kiến thức Java Web & MVC</h3>
-                            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
-                                Bộ câu hỏi trọng tâm về vòng đời Servlet, JSP Taglib và mô hình kiến trúc MVC trong Java Web.
-                            </p>
-                            <div style="background: var(--bg-page); padding: 12px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.88rem;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                    <span><i class="far fa-clock"></i> Thời lượng:</span> <strong>10 phút</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                    <span><i class="fas fa-list-ol"></i> Quy mô:</span> <strong>5 câu trắc nghiệm</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span><i class="fas fa-user-tie"></i> Biên soạn:</span> <strong>Thầy Mai Văn Hà</strong>
-                                </div>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/quiz?id=1" class="btn btn-primary btn-block">
-                                <i class="fas fa-arrow-right"></i> Xem chi tiết & Thi ngay
-                            </a>
-                        </div>
-                    </div>
-                </div>
-        </section>
-
-        <!-- 3 Trụ cột tính năng công nghệ -->
-        <section style="margin-bottom: 48px;">
-            <div style="text-align: center; max-width: 650px; margin: 0 auto 36px auto;">
-                <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">Kiến Trúc & Điểm Nhấn Công Nghệ</h2>
-                <p style="color: var(--text-secondary); font-size: 0.95rem;">Được xây dựng thuần Java Servlet / JSP tuân thủ chuẩn mô hình MVC nghiêm ngặt</p>
-            </div>
-
-            <div class="grid grid-3">
-                <div class="card" style="padding: 28px;">
-                    <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 18px;">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">Bảo Mật Zero-Trust</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
-                        Đáp án đúng và lời giải được ẩn hoàn toàn khỏi trình duyệt trong suốt thời gian làm bài, triệt tiêu nguy cơ xem trộm mã nguồn.
-                    </p>
+                <!-- Thanh Vào phòng thi nhanh cho Khách -->
+                <div style="background: var(--bg-page); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 14px; display: flex; align-items: center; gap: 10px; max-width: 580px; margin: 0 auto 28px auto; box-shadow: var(--shadow-sm);">
+                    <i class="fas fa-key" style="color: var(--primary); font-size: 1.1rem; padding-left: 6px;"></i>
+                    <input type="text" id="fastQuizInput" 
+                           placeholder="Nhập mã đề thi (Ví dụ: 7, 10...) hoặc dán liên kết..." 
+                           style="flex: 1; border: none; background: transparent; font-size: 0.95rem; font-weight: 500; outline: none; color: var(--text-primary);"
+                           onkeydown="if(event.key === 'Enter') handleFastEnter();">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="handleFastEnter()" style="padding: 8px 18px;">
+                        Vào thi ngay
+                    </button>
                 </div>
 
-                <div class="card" style="padding: 28px; border-color: var(--border-focus);">
-                    <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 18px;">
-                        <i class="fas fa-flask"></i>
-                    </div>
-                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">Phòng Lab Soạn Đề</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
-                        Không gian sáng tạo câu hỏi trực quan với Transaction JDBC nguyên khối, gán điểm và lời giải thích tỉ mỉ cho học viên.
-                    </p>
-                </div>
-
-                <div class="card" style="padding: 28px;">
-                    <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #ffedd5; color: #c2410c; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 18px;">
-                        <i class="fas fa-fire"></i>
-                    </div>
-                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">Chuỗi Chuyên Cần (Streak)</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
-                        Tự động tính chuỗi ngày học tập liên tục, thúc đẩy thói quen tự giác ôn tập và vinh danh trên Bảng vàng thành tích.
-                    </p>
+                <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                    <a href="${pageContext.request.contextPath}/quiz" class="btn btn-outline">
+                        <i class="fas fa-book-open"></i> Xem tất cả kho đề (${totalQuizzes} đề)
+                    </a>
+                    <a href="${pageContext.request.contextPath}/auth?action=login" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập hệ thống
+                    </a>
                 </div>
             </div>
         </section>
 
-        <!-- Thẻ Hướng dẫn Tài khoản mẫu dành cho Giảng viên -->
-        <section style="background: linear-gradient(135deg, #eef2ff, #f8fafc); border: 1px dashed var(--border-focus); border-radius: var(--radius-lg); padding: 24px 32px; margin-bottom: 30px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <!-- Thẻ thông tin tài khoản mẫu phục vụ Thầy Cô chấm bài -->
+        <section class="card" style="padding: 24px 28px; margin-bottom: 36px; border: 1px dashed var(--border-focus); background: #fdfefe;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                 <div>
-                    <h3 style="color: var(--primary); font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">
-                        <i class="fas fa-info-circle"></i> Tài khoản mẫu dùng để nghiệm thu và chấm bài (Mật khẩu: <code>123456</code>)
+                    <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--primary); margin: 0 0 6px;">
+                        <i class="fas fa-info-circle"></i> Tài khoản mẫu dùng để nghiệm thu và kiểm thử (Mật khẩu: <code>123456</code>)
                     </h3>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
-                        • <strong>Giáo viên:</strong> <code>teacher_ha</code> (Thầy Mai Văn Hà - Dùng thử Phòng Lab soạn đề)
-                        &bull; <strong>Học viên:</strong> <code>minhphat</code> (Vào thi & nhận điểm)
-                        &bull; <strong>Quản trị:</strong> <code>admin</code> (Bảng điều khiển)
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+                        • <strong>Giáo viên:</strong> <code>teacher_ha</code> (Thầy Mai Văn Hà - Soạn đề & Cài đặt khảo thí)<br>
+                        • <strong>Học viên:</strong> <code>minhphat</code> (Vào thi, xem điểm & xếp hạng) &bull; <strong>Quản trị:</strong> <code>admin</code>
                     </p>
                 </div>
-                <a href="${pageContext.request.contextPath}/auth?action=login" class="btn btn-primary btn-sm">
-                    <i class="fas fa-sign-in-alt"></i> Đăng nhập ngay
+                <a href="${pageContext.request.contextPath}/auth?action=login" class="btn btn-outline btn-sm">
+                    Đăng nhập tài khoản mẫu <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
                 </a>
             </div>
         </section>
     </c:otherwise>
 </c:choose>
+
+<!-- Toast thông báo sao chép link -->
+<div id="copyToast" style="display: none; position: fixed; bottom: 30px; right: 30px; z-index: 9999; background: #0f172a; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: var(--shadow-lg); font-weight: 600; font-size: 0.9rem;">
+    <i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Đã sao chép link đề thi vào bộ nhớ tạm!
+</div>
+
+<script>
+    function handleFastEnter() {
+        const input = document.getElementById('fastQuizInput');
+        if (!input) return;
+        let val = input.value.trim();
+        if (!val) {
+            alert('Vui lòng nhập mã số đề thi (Ví dụ: 7) hoặc liên kết đề thi!');
+            input.focus();
+            return;
+        }
+
+        // Nếu người dùng dán cả URL (ví dụ http://localhost:8080/QuizMaster/quiz?id=7)
+        if (val.includes('id=')) {
+            const match = val.match(/id=(\d+)/);
+            if (match && match[1]) {
+                val = match[1];
+            }
+        } else if (val.startsWith('#')) {
+            val = val.substring(1).trim();
+        }
+
+        const quizId = parseInt(val, 10);
+        if (isNaN(quizId) || quizId <= 0) {
+            alert('Mã đề thi không hợp lệ. Vui lòng nhập số ID của bộ đề (Ví dụ: 7, 10)!');
+            return;
+        }
+
+        window.location.href = '${pageContext.request.contextPath}/quiz?id=' + quizId;
+    }
+
+    function copyQuizShareLink(id) {
+        const url = window.location.origin + '${pageContext.request.contextPath}/quiz?id=' + id;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(function() {
+                const toast = document.getElementById('copyToast');
+                if (toast) {
+                    toast.style.display = 'block';
+                    setTimeout(() => toast.style.display = 'none', 3000);
+                }
+            });
+        }
+    }
+</script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

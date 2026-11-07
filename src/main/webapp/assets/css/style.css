@@ -1,17 +1,18 @@
 /* ========================================================
-   QUIZMASTER - MODERN DESIGN SYSTEM (GLASSMORPHISM & THEMES)
+   QUIZMASTER - MODERN DESIGN SYSTEM (CLEAN EDTECH / SAAS)
    ======================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
-    /* Color Palette */
+    /* Primary Brand: Modern Indigo */
     --primary: #4f46e5;
     --primary-hover: #4338ca;
-    --primary-light: #eef2ff;
-    --primary-glow: rgba(79, 70, 229, 0.25);
+    --primary-light: #f5f3ff;
+    --primary-border: #c7d2fe;
+    --primary-glow: rgba(79, 70, 229, 0.15);
     
     --secondary: #06b6d4;
     --secondary-hover: #0891b2;
@@ -19,41 +20,43 @@
     --accent: #f59e0b;
     --accent-glow: rgba(245, 158, 11, 0.3);
     
+    /* Functional Semantic Colors (Subtle & Restrained) */
     --success: #10b981;
-    --success-light: #ecfdf5;
+    --success-light: #f0fdf4;
     --danger: #ef4444;
     --danger-light: #fef2f2;
     --warning: #f59e0b;
     --warning-light: #fffbeb;
     --info: #3b82f6;
     
-    /* Neutral Shades */
+    /* Neutral Shades (High Legibility & Modern Slate Tone) */
     --bg-page: #f8fafc;
     --bg-surface: #ffffff;
     --bg-surface-elevated: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.85);
+    --bg-glass: rgba(255, 255, 255, 0.9);
     
     --text-primary: #0f172a;
     --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;
     --text-inverse: #ffffff;
     
     --border-color: #e2e8f0;
+    --border-subtle: #f1f5f9;
     --border-focus: #818cf8;
     
-    /* Shadows & Glass */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    /* Soft Refined Shadows */
+    --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+    --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+    --shadow-glass: 0 8px 24px 0 rgba(15, 23, 42, 0.05);
 
     --radius-sm: 8px;
     --radius-md: 12px;
-    --radius-lg: 18px;
+    --radius-lg: 16px;
     --radius-full: 9999px;
     
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Base Reset */
@@ -136,8 +139,12 @@ a:hover {
     bottom: 0;
     left: 0;
     z-index: 1050;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Chỉ bật transition khi app-layout đã sẵn sàng để tránh giật khi vừa load trang */
+.app-layout.sidebar-ready .app-sidebar {
+    transition: width 0.22s ease, transform 0.25s ease;
 }
 
 /* Sidebar Header */
@@ -321,7 +328,6 @@ a:hover {
 
 .sidebar-item:hover i {
     color: var(--primary);
-    transform: scale(1.1);
 }
 
 .sidebar-item.active {
@@ -429,7 +435,10 @@ a:hover {
     flex-direction: column;
     min-height: 100vh;
     min-width: 0;
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-layout.sidebar-ready .app-main {
+    transition: margin-left 0.22s ease;
 }
 
 /* Topbar */
@@ -807,16 +816,16 @@ a:hover {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    background: var(--primary);
     color: white;
-    box-shadow: 0 4px 12px var(--primary-glow);
+    box-shadow: 0 2px 6px var(--primary-glow);
 }
 
 .btn-primary:hover {
     background: var(--primary-hover);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px var(--primary-glow);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .btn-outline {
@@ -977,17 +986,29 @@ a:hover {
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--border-focus);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
 }
 
-/* Quiz Card */
+/* Quiz Card Modernized */
 .quiz-card {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.quiz-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
 }
 
 .quiz-card-header {
@@ -998,36 +1019,43 @@ a:hover {
 }
 
 .quiz-card-title {
-    font-size: 1.15rem;
+    font-size: 1.12rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 8px;
-    line-height: 1.4;
+    line-height: 1.45;
+    letter-spacing: -0.01em;
 }
 
 .quiz-card-desc {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--text-secondary);
     margin-bottom: 16px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.5;
 }
 
 .quiz-card-meta {
     display: flex;
     align-items: center;
-    gap: 16px;
-    font-size: 0.85rem;
+    gap: 14px;
+    font-size: 0.82rem;
     color: var(--text-muted);
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: var(--bg-page);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
 }
 
 .quiz-card-meta span {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    font-weight: 500;
 }
 
 .quiz-card-footer {
@@ -1035,7 +1063,7 @@ a:hover {
     align-items: center;
     justify-content: space-between;
     padding-top: 14px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-subtle);
 }
 
 /* Category Card */

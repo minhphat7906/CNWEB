@@ -7,20 +7,20 @@
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
     <div>
-        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 6px;">
+        <h1 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.02em;">
             <i class="fas fa-history" style="color: var(--primary);"></i> 
             <c:choose>
                 <c:when test="${not empty selectedQuiz}">Lịch sử làm bài: <c:out value="${selectedQuiz.title}" /></c:when>
-                <c:otherwise>Lịch Sử Thi & Làm Bài Của Tôi</c:otherwise>
+                <c:otherwise>Lịch Sử Thi & Làm Bài</c:otherwise>
             </c:choose>
         </h1>
-        <p style="color: var(--text-secondary); margin: 0;">
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
             <c:choose>
                 <c:when test="${not empty selectedQuiz}">
-                    Danh sách tất cả các lần bạn đã làm bài đối với bộ đề này
+                    Danh sách các lần bạn đã làm bài đối với bộ đề này
                 </c:when>
                 <c:otherwise>
-                    Theo dõi tiến độ học tập, xem lại chi tiết đáp án đúng/sai của từng bài thi đã nộp
+                    Theo dõi tiến độ, xem lại kết quả và lời giải thích chi tiết các bài thi đã nộp
                 </c:otherwise>
             </c:choose>
         </p>

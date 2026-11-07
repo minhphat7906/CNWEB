@@ -99,8 +99,10 @@ public class QuizLabServlet extends HttpServlet {
             return;
         }
 
-        if (!user.isAdmin() && quiz.getCreatorId() != user.getId()) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        // Quyền chỉnh sửa: Quản trị viên, Giáo viên, hoặc Tác giả tạo bộ đề
+        boolean canEdit = user.isAdmin() || user.isTeacher() || quiz.getCreatorId() == user.getId();
+        if (!canEdit) {
+            response.sendRedirect(request.getContextPath() + "/quiz-manage?error=forbidden");
             return;
         }
 
@@ -140,12 +142,8 @@ public class QuizLabServlet extends HttpServlet {
         boolean antiCheat = "on".equalsIgnoreCase(request.getParameter("antiCheat")) || "true".equalsIgnoreCase(request.getParameter("antiCheat"));
         boolean showRanking = "on".equalsIgnoreCase(request.getParameter("showRanking")) || "true".equalsIgnoreCase(request.getParameter("showRanking"));
 
-        if (!ValidationUtils.isNotEmpty(title)) {
-            request.setAttribute("errorMessage", "Vui lòng nhập tiêu đề cho bộ đề thi.");
-            showLabStudio(request, response, user);
-            return;
-        }
-
+        // Lấy danh sách câu hỏi và ID câu hỏi (để cập nhật đúng vị trí)
+        String[] qIds = request.getParameterValues("questionId");
         String[] qTexts = request.getParameterValues("questionText");
         String[] optAs = request.getParameterValues("optionA");
         String[] optBs = request.getParameterValues("optionB");
@@ -154,31 +152,37 @@ public class QuizLabServlet extends HttpServlet {
         String[] correctOpts = request.getParameterValues("correctOption");
         String[] explanations = request.getParameterValues("explanation");
 
-        if (qTexts == null || qTexts.length == 0) {
-            request.setAttribute("errorMessage", "Phòng Lab yêu cầu soạn thảo ít nhất 1 câu hỏi trắc nghiệm.");
-            showLabStudio(request, response, user);
-            return;
-        }
-
         List<Question> questions = new ArrayList<>();
-        for (int i = 0; i < qTexts.length; i++) {
-            if (ValidationUtils.isNotEmpty(qTexts[i])) {
-                Question q = new Question();
-                q.setQuestionText(qTexts[i].trim());
-                q.setOptionA(optAs != null && optAs.length > i ? optAs[i].trim() : "");
-                q.setOptionB(optBs != null && optBs.length > i ? optBs[i].trim() : "");
-                q.setOptionC(optCs != null && optCs.length > i ? optCs[i].trim() : "");
-                q.setOptionD(optDs != null && optDs.length > i ? optDs[i].trim() : "");
-                String correct = (correctOpts != null && correctOpts.length > i) ? correctOpts[i].trim().toUpperCase() : "A";
-                q.setCorrectOption(correct);
-                q.setPoints(1);
-                q.setExplanation(explanations != null && explanations.length > i ? explanations[i].trim() : "");
-                questions.add(q);
+        if (qTexts != null) {
+            for (int i = 0; i < qTexts.length; i++) {
+                String qText = qTexts[i] != null ? qTexts[i].trim() : "";
+                String a = optAs != null && optAs.length > i ? optAs[i].trim() : "";
+                String b = optBs != null && optBs.length > i ? optBs[i].trim() : "";
+                String c = optCs != null && optCs.length > i ? optCs[i].trim() : "";
+                String d = optDs != null && optDs.length > i ? optDs[i].trim() : "";
+
+                // Chỉ nhận câu hỏi nếu có nội dung hoặc ít nhất 1 đáp án được điền
+                if (!qText.isEmpty() || !a.isEmpty() || !b.isEmpty() || !c.isEmpty() || !d.isEmpty()) {
+                    Question q = new Question();
+                    int qId = (qIds != null && qIds.length > i) ? ValidationUtils.parsePositiveInt(qIds[i], 0) : 0;
+                    q.setId(qId);
+                    q.setQuestionText(qText);
+                    q.setOptionA(a);
+                    q.setOptionB(b);
+                    q.setOptionC(c);
+                    q.setOptionD(d);
+                    String correct = (correctOpts != null && correctOpts.length > i) ? correctOpts[i].trim().toUpperCase() : "A";
+                    q.setCorrectOption(correct);
+                    q.setPoints(1);
+                    q.setExplanation(explanations != null && explanations.length > i ? explanations[i].trim() : "");
+                    questions.add(q);
+                }
             }
         }
 
+        // Tạo đối tượng Quiz chứa toàn bộ dữ liệu vừa nhập
         Quiz quiz = new Quiz();
-        quiz.setTitle(title.trim());
+        quiz.setTitle(title != null ? title.trim() : "");
         quiz.setDescription(description != null ? description.trim() : "");
         quiz.setCategoryId(ValidationUtils.parsePositiveInt(request.getParameter("categoryId"), 1));
         quiz.setCreatorId(user.getId());
@@ -195,23 +199,63 @@ public class QuizLabServlet extends HttpServlet {
 
         if (isEdit) {
             int quizId = ValidationUtils.parsePositiveInt(request.getParameter("id"), 0);
+            Quiz existing = quizDAO.getQuizById(quizId);
+            boolean canEdit = (existing != null) && (user.isAdmin() || user.isTeacher() || existing.getCreatorId() == user.getId());
+            if (!canEdit) {
+                response.sendRedirect(request.getContextPath() + "/quiz-manage?error=forbidden");
+                return;
+            }
             quiz.setId(quizId);
+            if (existing != null) {
+                quiz.setCreatorId(existing.getCreatorId());
+            }
+        }
+
+        // Kiểm tra hợp lệ: Tiêu đề
+        if (!ValidationUtils.isNotEmpty(title)) {
+            forwardBackWithData(request, response, user, quiz, questions, isEdit, "Vui lòng nhập tiêu đề cho bộ đề thi.");
+            return;
+        }
+
+        // Kiểm tra hợp lệ: Câu hỏi
+        if (questions.isEmpty()) {
+            forwardBackWithData(request, response, user, quiz, questions, isEdit, "Vui lòng soạn thảo ít nhất 1 câu hỏi trắc nghiệm có đầy đủ nội dung.");
+            return;
+        }
+
+        if (isEdit) {
             boolean updated = quizDAO.updateQuiz(quiz, questions);
             if (updated) {
                 response.sendRedirect(request.getContextPath() + "/quiz-manage?success=updated");
             } else {
-                request.setAttribute("errorMessage", "Có lỗi khi cập nhật đề trong Lab.");
-                showLabStudio(request, response, user);
+                forwardBackWithData(request, response, user, quiz, questions, isEdit, "Có lỗi xảy ra khi cập nhật đề thi vào CSDL. Vui lòng kiểm tra lại dịch vụ MySQL.");
             }
         } else {
             int newId = quizDAO.createQuiz(quiz, questions);
             if (newId > 0) {
                 response.sendRedirect(request.getContextPath() + "/quiz-manage?success=created");
             } else {
-                request.setAttribute("errorMessage", "Có lỗi xảy ra trong quá trình lưu đề thi vào CSDL.");
-                showLabStudio(request, response, user);
+                forwardBackWithData(request, response, user, quiz, questions, isEdit, "Có lỗi xảy ra khi lưu đề thi vào CSDL. Vui lòng kiểm tra lại dịch vụ MySQL.");
             }
         }
+    }
+
+    /**
+     * Giữ nguyên 100% dữ liệu form và danh sách câu hỏi khi có lỗi
+     */
+    private void forwardBackWithData(HttpServletRequest request, HttpServletResponse response, User user,
+                                     Quiz quiz, List<Question> questions, boolean isEdit, String errorMsg)
+            throws ServletException, IOException {
+        if (quiz != null) {
+            quiz.setQuestions(questions);
+            request.setAttribute("quiz", quiz);
+        }
+        request.setAttribute("isEdit", isEdit);
+        request.setAttribute("errorMessage", errorMsg);
+        request.setAttribute("categories", categoryDAO.getAllCategories());
+        List<Quiz> myQuizzes = user.isAdmin() ? quizDAO.getAllQuizzesForAdmin() : quizDAO.getQuizzesByCreator(user.getId());
+        request.setAttribute("myQuizzesCount", myQuizzes.size());
+        request.getRequestDispatcher("/WEB-INF/views/quiz/quiz-lab.jsp").forward(request, response);
     }
 
     private User getCurrentUser(HttpServletRequest request) {

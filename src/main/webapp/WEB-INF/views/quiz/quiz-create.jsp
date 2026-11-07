@@ -90,11 +90,17 @@
 </form>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Tự động thêm sẵn 2 câu hỏi mẫu rỗng khi mở form
-        addQuestionCard();
-        addQuestionCard();
-    });
+    function initCreateQuestions() {
+        if (document.querySelectorAll('.question-builder-card').length === 0) {
+            addQuestionCard();
+            addQuestionCard();
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCreateQuestions);
+    } else {
+        initCreateQuestions();
+    }
 </script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

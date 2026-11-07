@@ -117,6 +117,21 @@
         </button>
     </div>
 
+    <div id="initialQuestionsData" style="display: none;">
+        <c:forEach items="${quiz.questions}" var="q">
+            <div class="initial-q-item">
+                <input type="hidden" class="raw-id" value="${q.id}" />
+                <textarea class="raw-text"><c:out value="${q.questionText}"/></textarea>
+                <textarea class="raw-a"><c:out value="${q.optionA}"/></textarea>
+                <textarea class="raw-b"><c:out value="${q.optionB}"/></textarea>
+                <textarea class="raw-c"><c:out value="${q.optionC}"/></textarea>
+                <textarea class="raw-d"><c:out value="${q.optionD}"/></textarea>
+                <input type="hidden" class="raw-correct" value="<c:out value='${q.correctOption}'/>" />
+                <textarea class="raw-exp"><c:out value="${q.explanation}"/></textarea>
+            </div>
+        </c:forEach>
+    </div>
+
     <div id="questionsContainer">
         <!-- Sẽ được populate dữ liệu cũ qua script bên dưới -->
     </div>
@@ -133,20 +148,41 @@
 </form>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        <c:forEach items="${quiz.questions}" var="q">
-            addQuestionCard({
-                text: `${q.questionText}`,
-                a: `${q.optionA}`,
-                b: `${q.optionB}`,
-                c: `${q.optionC}`,
-                d: `${q.optionD}`,
-                correct: `${q.correctOption}`,
-                points: 1,
-                explanation: `${q.explanation}`
+    function initEditQuestions() {
+        const initialCards = document.querySelectorAll('#initialQuestionsData .initial-q-item');
+        if (initialCards && initialCards.length > 0) {
+            initialCards.forEach(item => {
+                const qId = parseInt(item.querySelector('.raw-id')?.value) || 0;
+                const text = item.querySelector('.raw-text')?.value || '';
+                const a = item.querySelector('.raw-a')?.value || '';
+                const b = item.querySelector('.raw-b')?.value || '';
+                const c = item.querySelector('.raw-c')?.value || '';
+                const d = item.querySelector('.raw-d')?.value || '';
+                const correct = item.querySelector('.raw-correct')?.value || 'A';
+                const exp = item.querySelector('.raw-exp')?.value || '';
+
+                addQuestionCard({
+                    id: qId,
+                    text: text,
+                    a: a,
+                    b: b,
+                    c: c,
+                    d: d,
+                    correct: correct,
+                    points: 1,
+                    explanation: exp
+                });
             });
-        </c:forEach>
-    });
+        } else {
+            addQuestionCard();
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEditQuestions);
+    } else {
+        initEditQuestions();
+    }
 </script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

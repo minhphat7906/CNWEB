@@ -242,16 +242,15 @@ public class QuizDAO {
     }
 
     /**
-     * Cập nhật đề thi và danh sách câu hỏi sử dụng JDBC Transaction
+     * Cập nhật đề thi và danh sách câu hỏi sử dụng JDBC Transaction & In-place Question Update
+     * Giúp tránh lỗi khóa ngoại Foreign Key với attempt_answers và bảo toàn lịch sử thi
      */
     public boolean updateQuiz(Quiz quiz, List<Question> questions) {
         String sqlQuiz = "UPDATE quizzes SET title = ?, description = ?, category_id = ?, time_limit = ?, difficulty = ?, is_public = ?, " +
                          "shuffle_questions = ?, shuffle_options = ?, show_answers = ?, access_code = ?, max_attempts = ?, anti_cheat = ?, show_ranking = ? " +
                          "WHERE id = ?";
-        String sqlDeleteOldQuestions = "DELETE FROM questions WHERE quiz_id = ?";
         Connection conn = null;
         PreparedStatement psQuiz = null;
-        PreparedStatement psDel = null;
         try {
             conn = DBContext.getConnection();
             conn.setAutoCommit(false);
@@ -274,16 +273,105 @@ public class QuizDAO {
             psQuiz.setInt(14, quiz.getId());
             psQuiz.executeUpdate();
 
-            // 2. Xóa các câu hỏi cũ
-            psDel = conn.prepareStatement(sqlDeleteOldQuestions);
-            psDel.setInt(1, quiz.getId());
-            psDel.executeUpdate();
+            // 2. Lấy danh sách ID câu hỏi hiện tại trong DB của đề thi này
+            List<Integer> existingIds = new ArrayList<>();
+            String sqlGetIds = "SELECT id FROM questions WHERE quiz_id = ? ORDER BY id ASC";
+            try (PreparedStatement psIds = conn.prepareStatement(sqlGetIds)) {
+                psIds.setInt(1, quiz.getId());
+                try (ResultSet rs = psIds.executeQuery()) {
+                    while (rs.next()) {
+                        existingIds.add(rs.getInt("id"));
+                    }
+                }
+            }
 
-            // 3. Thêm lại các câu hỏi mới
-            if (questions != null && !questions.isEmpty()) {
-                for (Question q : questions) {
-                    q.setQuizId(quiz.getId());
-                    QuestionDAO.insertQuestion(conn, q);
+            // 3. Cập nhật hoặc thêm mới từng câu hỏi (In-place update)
+            String sqlUpdateQ = "UPDATE questions SET question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, points = ?, explanation = ? WHERE id = ? AND quiz_id = ?";
+            String sqlInsertQ = "INSERT INTO questions (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_option, points, explanation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            List<Integer> keptIds = new ArrayList<>();
+
+            if (questions != null) {
+                for (int i = 0; i < questions.size(); i++) {
+                    Question q = questions.get(i);
+                    int targetId = q.getId();
+
+                    // Nếu câu hỏi có ID hợp lệ và thuộc quiz này -> Update theo ID
+                    if (targetId > 0 && existingIds.contains(targetId)) {
+                        try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateQ)) {
+                            psUp.setString(1, q.getQuestionText());
+                            psUp.setString(2, q.getOptionA());
+                            psUp.setString(3, q.getOptionB());
+                            psUp.setString(4, q.getOptionC());
+                            psUp.setString(5, q.getOptionD());
+                            psUp.setString(6, q.getCorrectOption());
+                            psUp.setInt(7, q.getPoints() > 0 ? q.getPoints() : 1);
+                            psUp.setString(8, q.getExplanation());
+                            psUp.setInt(9, targetId);
+                            psUp.setInt(10, quiz.getId());
+                            psUp.executeUpdate();
+                        }
+                        keptIds.add(targetId);
+                    } else if (i < existingIds.size() && (targetId <= 0 || !existingIds.contains(targetId))) {
+                        // Nếu không truyền ID cụ thể nhưng ở vị trí tương ứng với câu cũ -> update câu cũ theo vị trí
+                        int reuseId = existingIds.get(i);
+                        try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateQ)) {
+                            psUp.setString(1, q.getQuestionText());
+                            psUp.setString(2, q.getOptionA());
+                            psUp.setString(3, q.getOptionB());
+                            psUp.setString(4, q.getOptionC());
+                            psUp.setString(5, q.getOptionD());
+                            psUp.setString(6, q.getCorrectOption());
+                            psUp.setInt(7, q.getPoints() > 0 ? q.getPoints() : 1);
+                            psUp.setString(8, q.getExplanation());
+                            psUp.setInt(9, reuseId);
+                            psUp.setInt(10, quiz.getId());
+                            psUp.executeUpdate();
+                        }
+                        keptIds.add(reuseId);
+                    } else {
+                        // Thêm câu hỏi mới vào đề
+                        try (PreparedStatement psIn = conn.prepareStatement(sqlInsertQ, Statement.RETURN_GENERATED_KEYS)) {
+                            psIn.setInt(1, quiz.getId());
+                            psIn.setString(2, q.getQuestionText());
+                            psIn.setString(3, q.getOptionA());
+                            psIn.setString(4, q.getOptionB());
+                            psIn.setString(5, q.getOptionC());
+                            psIn.setString(6, q.getOptionD());
+                            psIn.setString(7, q.getCorrectOption());
+                            psIn.setInt(8, q.getPoints() > 0 ? q.getPoints() : 1);
+                            psIn.setString(9, q.getExplanation());
+                            psIn.executeUpdate();
+                            try (ResultSet rsGen = psIn.getGeneratedKeys()) {
+                                if (rsGen.next()) {
+                                    keptIds.add(rsGen.getInt(1));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 4. Xóa những câu hỏi cũ đã bị người dùng bấm xóa (nếu không có ràng buộc attempt_answers)
+            for (int oldId : existingIds) {
+                if (!keptIds.contains(oldId)) {
+                    String sqlCheckAnswers = "SELECT COUNT(*) FROM attempt_answers WHERE question_id = ?";
+                    boolean hasAnswers = false;
+                    try (PreparedStatement psCheck = conn.prepareStatement(sqlCheckAnswers)) {
+                        psCheck.setInt(1, oldId);
+                        try (ResultSet rsCheck = psCheck.executeQuery()) {
+                            if (rsCheck.next() && rsCheck.getInt(1) > 0) {
+                                hasAnswers = true;
+                            }
+                        }
+                    } catch (SQLException ignored) {}
+
+                    if (!hasAnswers) {
+                        try (PreparedStatement psDelOne = conn.prepareStatement("DELETE FROM questions WHERE id = ?")) {
+                            psDelOne.setInt(1, oldId);
+                            psDelOne.executeUpdate();
+                        }
+                    }
                 }
             }
 
@@ -304,9 +392,6 @@ public class QuizDAO {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException ignored) {}
-            }
-            if (psDel != null) {
-                try { psDel.close(); } catch (SQLException ignored) {}
             }
             DBContext.close(conn, psQuiz);
         }

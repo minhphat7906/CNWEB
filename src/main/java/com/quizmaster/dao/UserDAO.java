@@ -127,7 +127,10 @@ public class UserDAO {
     }
 
     /**
-     * Thuật toán cập nhật chuỗi học tập (Streak)
+     * Thuật toán cập nhật chuỗi học tập (Streak):
+     * - Nếu hôm nay đã làm đề (diffDays == 0): Giữ nguyên chuỗi.
+     * - Nếu hôm qua có làm đề (diffDays == 1): Tăng chuỗi thêm 1 ngày liên tiếp.
+     * - Nếu đứt chuỗi (diffDays >= 2 hoặc chưa từng làm): Bắt đầu lại từ 1.
      */
     public void updateStreak(int userId) {
         User user = findById(userId);
@@ -135,7 +138,8 @@ public class UserDAO {
 
         LocalDate today = LocalDate.now();
         Date lastActive = user.getLastActiveDate();
-        int newStreak = user.getCurrentStreak();
+        int currentStreak = user.getCurrentStreak();
+        int newStreak;
 
         if (lastActive == null) {
             newStreak = 1;
@@ -146,10 +150,10 @@ public class UserDAO {
                 // Đã hoạt động trong hôm nay, giữ nguyên chuỗi
                 return;
             } else if (diffDays == 1) {
-                // Hoạt động ngày tiếp theo -> Tăng chuỗi
-                newStreak += 1;
+                // Hoạt động ngày tiếp theo -> Tăng chuỗi liên tiếp
+                newStreak = (currentStreak > 0 ? currentStreak : 0) + 1;
             } else {
-                // Đứt chuỗi -> Reset về 1
+                // Đứt chuỗi (bỏ lỡ >= 2 ngày) -> Bắt đầu chuỗi mới từ 1
                 newStreak = 1;
             }
         }
@@ -165,6 +169,25 @@ public class UserDAO {
             ps.executeUpdate();
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating streak for user " + userId, e);
+        } finally {
+            DBContext.close(conn, ps);
+        }
+    }
+
+    /**
+     * Tự động reset chuỗi về 0 trong CSDL khi học viên không làm đề liên tục
+     */
+    public void resetStreakInDB(int userId) {
+        String sql = "UPDATE users SET current_streak = 0 WHERE id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOGGER.log(Level.WARNING, "Error resetting streak in DB for user " + userId, e);
         } finally {
             DBContext.close(conn, ps);
         }
@@ -302,8 +325,26 @@ public class UserDAO {
         u.setFullName(rs.getString("full_name"));
         u.setAvatarUrl(rs.getString("avatar_url"));
         u.setRole(rs.getString("role"));
-        u.setCurrentStreak(rs.getInt("current_streak"));
-        u.setLastActiveDate(rs.getDate("last_active_date"));
+
+        Date lastActive = rs.getDate("last_active_date");
+        int streak = rs.getInt("current_streak");
+
+        // TỰ ĐỘNG RESET STREAK: Nếu hôm qua không làm đề (diffDays >= 2), chuỗi streak tự động = 0!
+        if (streak > 0) {
+            if (lastActive == null) {
+                streak = 0;
+                resetStreakInDB(u.getId());
+            } else {
+                long days = ChronoUnit.DAYS.between(lastActive.toLocalDate(), LocalDate.now());
+                if (days >= 2) {
+                    streak = 0;
+                    resetStreakInDB(u.getId());
+                }
+            }
+        }
+
+        u.setCurrentStreak(streak);
+        u.setLastActiveDate(lastActive);
         u.setCreatedAt(rs.getTimestamp("created_at"));
         u.setUpdatedAt(rs.getTimestamp("updated_at"));
         return u;

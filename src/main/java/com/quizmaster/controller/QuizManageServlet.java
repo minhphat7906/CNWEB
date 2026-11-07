@@ -104,9 +104,10 @@ public class QuizManageServlet extends HttpServlet {
             return;
         }
 
-        // Kiểm tra quyền sở hữu
-        if (!user.isAdmin() && quiz.getCreatorId() != user.getId()) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền chỉnh sửa bộ đề này.");
+        // Kiểm tra quyền sở hữu: Admin, Teacher hoặc chính tác giả
+        boolean canEdit = user.isAdmin() || user.isTeacher() || quiz.getCreatorId() == user.getId();
+        if (!canEdit) {
+            response.sendRedirect(request.getContextPath() + "/quiz-manage?error=forbidden");
             return;
         }
 
@@ -161,6 +162,7 @@ public class QuizManageServlet extends HttpServlet {
         }
 
         // Lấy danh sách câu hỏi qua mảng tham số
+        String[] qIds = request.getParameterValues("questionId");
         String[] qTexts = request.getParameterValues("questionText");
         String[] optAs = request.getParameterValues("optionA");
         String[] optBs = request.getParameterValues("optionB");
@@ -179,6 +181,8 @@ public class QuizManageServlet extends HttpServlet {
         for (int i = 0; i < qTexts.length; i++) {
             if (ValidationUtils.isNotEmpty(qTexts[i])) {
                 Question q = new Question();
+                int qId = (qIds != null && qIds.length > i) ? ValidationUtils.parsePositiveInt(qIds[i], 0) : 0;
+                q.setId(qId);
                 q.setQuestionText(qTexts[i].trim());
                 q.setOptionA(optAs != null && optAs.length > i ? optAs[i].trim() : "");
                 q.setOptionB(optBs != null && optBs.length > i ? optBs[i].trim() : "");
@@ -210,16 +214,20 @@ public class QuizManageServlet extends HttpServlet {
         if (isEdit) {
             int quizId = ValidationUtils.parsePositiveInt(request.getParameter("id"), 0);
             Quiz existing = quizDAO.getQuizById(quizId);
-            if (existing == null || (!user.isAdmin() && existing.getCreatorId() != user.getId())) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            boolean canEdit = (existing != null) && (user.isAdmin() || user.isTeacher() || existing.getCreatorId() == user.getId());
+            if (!canEdit) {
+                response.sendRedirect(request.getContextPath() + "/quiz-manage?error=forbidden");
                 return;
             }
             quiz.setId(quizId);
+            if (existing != null) {
+                quiz.setCreatorId(existing.getCreatorId());
+            }
             boolean updated = quizDAO.updateQuiz(quiz, questions);
             if (updated) {
                 response.sendRedirect(request.getContextPath() + "/quiz-manage?success=updated");
             } else {
-                request.setAttribute("errorMessage", "Lỗi khi cập nhật đề thi.");
+                request.setAttribute("errorMessage", "Lỗi khi cập nhật đề thi vào CSDL.");
                 showEditForm(request, response, user);
             }
         } else {

@@ -4,15 +4,41 @@
 <c:set var="activePage" value="quiz-manage" />
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
     <div>
-        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 6px;">Đề Thi Của Tôi</h1>
-        <p style="color: var(--text-secondary);">Quản lý, chỉnh sửa câu hỏi và theo dõi thống kê các bộ đề do bạn biên soạn</p>
+        <h1 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.02em;">Đề Thi Đã Tạo</h1>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">Quản lý danh sách, chỉnh sửa câu hỏi và thông số các bộ đề do bạn biên soạn</p>
     </div>
     <a href="${pageContext.request.contextPath}/quiz-lab" class="btn btn-primary">
-        <i class="fas fa-flask"></i> Soạn đề trong Phòng Lab
+        <i class="fas fa-plus"></i> Tạo đề thi mới
     </a>
 </div>
+
+<c:if test="${param.success eq 'updated'}">
+    <div class="alert alert-success" style="margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i> Đã cập nhật thành công nội dung đề thi và danh sách câu hỏi!
+    </div>
+</c:if>
+<c:if test="${param.success eq 'created'}">
+    <div class="alert alert-success" style="margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i> Đã tạo mới thành công bộ đề thi!
+    </div>
+</c:if>
+<c:if test="${param.success eq 'deleted'}">
+    <div class="alert alert-success" style="margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i> Đã xóa thành công bộ đề thi!
+    </div>
+</c:if>
+<c:if test="${param.error eq 'forbidden'}">
+    <div class="alert alert-danger" style="margin-bottom: 20px;">
+        <i class="fas fa-exclamation-triangle"></i> Bạn không có quyền chỉnh sửa bộ đề này. Chỉ Quản trị viên, Giáo viên hoặc Tác giả tạo đề mới có quyền chỉnh sửa.
+    </div>
+</c:if>
+<c:if test="${param.error eq 'notfound'}">
+    <div class="alert alert-warning" style="margin-bottom: 20px;">
+        <i class="fas fa-exclamation-circle"></i> Không tìm thấy bộ đề thi yêu cầu.
+    </div>
+</c:if>
 
 <c:choose>
     <c:when test="${not empty quizzes}">
@@ -66,7 +92,7 @@
                                     <a href="${pageContext.request.contextPath}/quiz-take?id=${q.id}" class="btn btn-outline btn-sm" title="Vào thi thử">
                                         <i class="fas fa-play"></i> Thi thử
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/quiz-lab?action=edit&id=${q.id}" class="btn btn-outline btn-sm" title="Chỉnh sửa trong Lab">
+                                    <a href="${pageContext.request.contextPath}/quiz-lab?action=edit&id=${q.id}" class="btn btn-outline btn-sm" title="Chỉnh sửa đề thi">
                                         <i class="fas fa-edit"></i> Sửa
                                     </a>
                                     <a href="${pageContext.request.contextPath}/quiz-manage?action=delete&id=${q.id}" 
@@ -85,14 +111,14 @@
     </c:when>
 
     <c:otherwise>
-        <div class="card" style="text-align: center; padding: 48px;">
-            <div style="font-size: 3rem; color: var(--text-muted); margin-bottom: 16px;">
-                <i class="fas fa-flask"></i>
+        <div class="card" style="text-align: center; padding: 48px 24px; border-radius: 12px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--text-muted); font-size: 1.8rem;">
+                <i class="fas fa-folder-open"></i>
             </div>
-            <h3 style="margin-bottom: 8px;">Bạn chưa tạo bộ đề thi nào</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 24px;">Hãy bắt đầu sáng tạo kiến thức bằng cách biên soạn bộ đề đầu tiên trong Phòng Lab Studio!</p>
+            <h3 style="margin-bottom: 8px; font-weight: 700;">Bạn chưa có đề thi nào</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem;">Bắt đầu biên soạn bộ đề kiểm tra trắc nghiệm đầu tiên của bạn!</p>
             <a href="${pageContext.request.contextPath}/quiz-lab" class="btn btn-primary">
-                <i class="fas fa-flask"></i> Mở Phòng Lab Soạn Đề
+                <i class="fas fa-plus"></i> Tạo đề thi mới
             </a>
         </div>
     </c:otherwise>

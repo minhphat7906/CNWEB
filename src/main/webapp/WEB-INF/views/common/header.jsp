@@ -23,6 +23,16 @@
 <body>
 
 <div class="app-layout" id="appLayout">
+    <!-- Instant preload script to prevent sidebar flickering / jumping -->
+    <script>
+        (function() {
+            try {
+                if (window.innerWidth > 992 && localStorage.getItem('quizmaster_sidebar_collapsed') === 'true') {
+                    document.getElementById('appLayout').classList.add('sidebar-collapsed');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <!-- Backdrop for mobile drawer -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
@@ -75,20 +85,20 @@
 
         <!-- Navigation Menu Groups -->
         <div class="sidebar-nav-wrapper">
-            <!-- Group 1: Điều hướng chính -->
+            <!-- Group 1: Khảo thí & Luyện tập -->
             <div class="sidebar-nav-group">
-                <div class="sidebar-group-title">ĐIỀU HƯỚNG CHÍNH</div>
+                <div class="sidebar-group-title">KHẢO THÍ & LUYỆN TẬP</div>
                 <ul class="sidebar-menu">
                     <li>
                         <a href="${pageContext.request.contextPath}/home" class="sidebar-item ${activePage eq 'home' ? 'active' : ''}">
                             <i class="fas fa-home"></i>
-                            <span class="sidebar-item-text">Trang chủ / Bàn làm việc</span>
+                            <span class="sidebar-item-text">Bàn làm việc</span>
                         </a>
                     </li>
                     <li>
                         <a href="${pageContext.request.contextPath}/quiz" class="sidebar-item ${activePage eq 'quiz' ? 'active' : ''}">
                             <i class="fas fa-book-open"></i>
-                            <span class="sidebar-item-text">Kho đề thi trắc nghiệm</span>
+                            <span class="sidebar-item-text">Kho đề thi</span>
                         </a>
                     </li>
                     <c:if test="${not empty sessionScope.currentUser}">
@@ -102,56 +112,41 @@
                 </ul>
             </div>
 
-            <!-- Group 2: Soạn đề & Lab -->
+            <!-- Group 2: Biên soạn đề thi (Học viên & Giảng viên đều có thể tạo đề ôn tập) -->
             <c:if test="${not empty sessionScope.currentUser}">
                 <div class="sidebar-nav-group">
-                    <div class="sidebar-group-title">BIÊN SOẠN & KHẢO THÍ</div>
+                    <div class="sidebar-group-title">
+                        <c:choose>
+                            <c:when test="${sessionScope.currentUser.teacher or sessionScope.currentUser.admin}">QUẢN LÝ KHẢO THÍ</c:when>
+                            <c:otherwise>BIÊN SOẠN & ÔN TẬP</c:otherwise>
+                        </c:choose>
+                    </div>
                     <ul class="sidebar-menu">
                         <li>
-                            <a href="${pageContext.request.contextPath}/quiz-lab" class="sidebar-item highlight ${activePage eq 'quiz-lab' ? 'active' : ''}">
-                                <i class="fas fa-flask"></i>
-                                <span class="sidebar-item-text">Phòng Lab Soạn Đề</span>
-                                <span class="badge-mini">STUDIO</span>
+                            <a href="${pageContext.request.contextPath}/quiz-lab" class="sidebar-item ${activePage eq 'quiz-lab' ? 'active' : ''}">
+                                <i class="fas fa-plus-circle"></i>
+                                <span class="sidebar-item-text">Tạo đề thi mới</span>
                             </a>
                         </li>
                         <li>
                             <a href="${pageContext.request.contextPath}/quiz-manage" class="sidebar-item ${activePage eq 'quiz-manage' ? 'active' : ''}">
                                 <i class="fas fa-folder-open"></i>
-                                <span class="sidebar-item-text">Đề thi của tôi</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Group 3: Cá nhân -->
-                <div class="sidebar-nav-group">
-                    <div class="sidebar-group-title">CÁ NHÂN</div>
-                    <ul class="sidebar-menu">
-                        <li>
-                            <a href="${pageContext.request.contextPath}/profile" class="sidebar-item ${activePage eq 'profile' ? 'active' : ''}">
-                                <i class="fas fa-user-circle"></i>
-                                <span class="sidebar-item-text">Hồ sơ cá nhân</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="${pageContext.request.contextPath}/history" class="sidebar-item ${activePage eq 'history' ? 'active' : ''}">
-                                <i class="fas fa-clock"></i>
-                                <span class="sidebar-item-text">Xem tất cả lịch sử thi</span>
+                                <span class="sidebar-item-text">Đề thi đã tạo</span>
                             </a>
                         </li>
                     </ul>
                 </div>
             </c:if>
 
-            <!-- Group 4: Quản trị viên (nếu là Admin) -->
+            <!-- Group 3: Quản trị viên (nếu là Admin) -->
             <c:if test="${not empty sessionScope.currentUser and sessionScope.currentUser.admin}">
                 <div class="sidebar-nav-group">
-                    <div class="sidebar-group-title">QUẢN TRỊ VIÊN</div>
+                    <div class="sidebar-group-title">HỆ THỐNG</div>
                     <ul class="sidebar-menu">
                         <li>
                             <a href="${pageContext.request.contextPath}/admin" class="sidebar-item ${activePage eq 'admin' ? 'active' : ''}">
                                 <i class="fas fa-shield-alt"></i>
-                                <span class="sidebar-item-text">Bảng điều khiển Admin</span>
+                                <span class="sidebar-item-text">Quản trị Admin</span>
                             </a>
                         </li>
                     </ul>
@@ -204,9 +199,9 @@
                             <span>${sessionScope.currentUser.currentStreak} ngày</span>
                         </div>
 
-                        <!-- Lab shortcut button -->
-                        <a href="${pageContext.request.contextPath}/quiz-lab" class="btn btn-primary btn-sm topbar-action-btn">
-                            <i class="fas fa-flask"></i> <span>Phòng Lab</span>
+                        <!-- Shortcut nút Tạo đề -->
+                        <a href="${pageContext.request.contextPath}/quiz-lab" class="btn btn-primary btn-sm topbar-action-btn" style="font-weight: 600;">
+                            <i class="fas fa-plus"></i> <span>Tạo đề thi</span>
                         </a>
 
                         <!-- User Profile Dropdown -->
@@ -220,21 +215,17 @@
                             </div>
 
                             <div class="user-dropdown">
+                                <div style="padding: 10px 14px 6px;">
+                                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">${sessionScope.currentUser.fullName}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">@${sessionScope.currentUser.username} &bull; ${sessionScope.currentUser.role}</div>
+                                </div>
+                                <div class="dropdown-divider"></div>
                                 <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">
-                                    <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
-                                </a>
-                                <a href="${pageContext.request.contextPath}/history" class="dropdown-item">
-                                    <i class="fas fa-history"></i> Lịch sử làm bài
-                                </a>
-                                <a href="${pageContext.request.contextPath}/quiz-lab" class="dropdown-item">
-                                    <i class="fas fa-flask"></i> Phòng Lab Soạn Đề
-                                </a>
-                                <a href="${pageContext.request.contextPath}/quiz-manage" class="dropdown-item">
-                                    <i class="fas fa-folder-open"></i> Đề thi của tôi
+                                    <i class="fas fa-user-circle"></i> Hồ sơ tài khoản
                                 </a>
                                 <c:if test="${sessionScope.currentUser.admin}">
                                     <a href="${pageContext.request.contextPath}/admin" class="dropdown-item">
-                                        <i class="fas fa-cogs"></i> Bảng điều khiển Admin
+                                        <i class="fas fa-shield-alt"></i> Bảng điều khiển Admin
                                     </a>
                                 </c:if>
                                 <div class="dropdown-divider"></div>

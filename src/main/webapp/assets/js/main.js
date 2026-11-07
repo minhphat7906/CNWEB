@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
+    // Kích hoạt transition mượt sau khi trang đã render xong tĩnh
+    setTimeout(function() {
+        if (appLayout) appLayout.classList.add('sidebar-ready');
+    }, 150);
+
     if (sidebarToggleBtn && appLayout) {
         sidebarToggleBtn.addEventListener('click', function () {
             if (window.innerWidth <= 992) {
@@ -45,13 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
         sidebarBackdrop.addEventListener('click', function () {
             appLayout.classList.remove('sidebar-mobile-open');
         });
-    }
-
-    // Khôi phục trạng thái thu gọn Sidebar đã lưu trên Desktop
-    if (window.innerWidth > 992 && appLayout) {
-        if (localStorage.getItem('quizmaster_sidebar_collapsed') === 'true') {
-            appLayout.classList.add('sidebar-collapsed');
-        }
     }
 
     // 3. Xử lý Click mở Menu Profile người dùng (Không dùng hover để tránh trôi chuột)
